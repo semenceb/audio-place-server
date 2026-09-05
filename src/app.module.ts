@@ -13,10 +13,16 @@ import { PlaylistsModule } from './modules/playlists';
 import { SongModule } from './modules/song';
 import { PlaybackQueueModule } from './modules/playback-queue';
 
+console.log(process.env.NODE_ENV);
+
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath:
+        process.env.NODE_ENV === 'development'
+          ? '.env.development'
+          : '.env.production',
     }),
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'uploads'),
