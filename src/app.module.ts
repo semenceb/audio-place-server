@@ -12,6 +12,7 @@ import { AuthorModule } from './modules/author';
 import { PlaylistsModule } from './modules/playlists';
 import { SongModule } from './modules/song';
 import { PlaybackQueueModule } from './modules/playback-queue';
+import {HealthModule} from "./modules/health/health.module";
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { PlaybackQueueModule } from './modules/playback-queue';
     PlaylistsModule,
     SongModule,
     PlaybackQueueModule,
+    HealthModule,
   ],
 })
 export class AppModule {}
