@@ -12,7 +12,7 @@ jobs:
     timeout-minutes: 20
     env:
       REGISTRY: git.home.arpa
-      IMAGE: git.home.arpa/semenceb/audio-place-server:main
+      IMAGE: git.home.arpa/semenceb-org/audio-place-server:main
       FORGEJO_API_URL: http://git.home.arpa/api/v1
       INFRA_REPOSITORY: home.arpa/infrastructure
       DEPLOY_TARGET: audio-place:server
