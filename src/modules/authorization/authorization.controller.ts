@@ -17,12 +17,8 @@ export class AuthorizationController {
   ) {
     const dto = await this.authorizationService.registration(body);
 
-    response.cookie('refreshToken', dto.tokens.refreshToken, {
-      httpOnly: true,
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-      secure: true,
-      sameSite: 'none',
-    });
+    this.setRefreshTokenCookie(response, dto.tokens.refreshToken)
+
     return dto;
   }
 
@@ -33,12 +29,8 @@ export class AuthorizationController {
   ) {
     const dto = await this.authorizationService.login(body);
 
-    response.cookie('refreshToken', dto.tokens.refreshToken, {
-      httpOnly: true,
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-      secure: true,
-      sameSite: 'none',
-    });
+    this.setRefreshTokenCookie(response, dto.tokens.refreshToken)
+
     return dto;
   }
 
@@ -57,12 +49,18 @@ export class AuthorizationController {
     @Cookies('refreshToken') refreshToken: string,
   ) {
     const dto = await this.authorizationService.refresh(refreshToken);
-    response.cookie('refreshToken', dto.tokens.refreshToken, {
+
+    this.setRefreshTokenCookie(response, dto.tokens.refreshToken)
+
+    return dto;
+  }
+
+  private setRefreshTokenCookie(response: Response, value: string) {
+    response.cookie('refreshToken', value, {
       httpOnly: true,
       maxAge: 30 * 24 * 60 * 60 * 1000,
-      secure: true,
-      sameSite: 'none',
+      secure: false,
+      sameSite: 'strict',
     });
-    return dto;
   }
 }
