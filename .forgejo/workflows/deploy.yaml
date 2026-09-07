@@ -1,0 +1,80 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-push-dispatch:
+    runs-on: docker-build
+    timeout-minutes: 20
+    env:
+      REGISTRY: git.home.arpa
+      IMAGE: git.home.arpa/semenceb/audio-place-server:main
+      FORGEJO_API_URL: http://git.home.arpa/api/v1
+      INFRA_REPOSITORY: home.arpa/infrastructure
+      DEPLOY_TARGET: audio-place:server
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check Docker
+        run: |
+          set -eu
+          command -v curl >/dev/null
+          docker version
+          docker info
+
+      - name: Login to Forgejo registry
+        env:
+          REGISTRY_USER: ${{ secrets.REGISTRY_PUSH_USER }}
+          REGISTRY_TOKEN: ${{ secrets.REGISTRY_PUSH_TOKEN }}
+        run: |
+          set -eu
+
+          if [ -z "$REGISTRY_USER" ]; then
+            echo "Missing REGISTRY_PUSH_USER secret." >&2
+            exit 1
+          fi
+
+          if [ -z "$REGISTRY_TOKEN" ]; then
+            echo "Missing REGISTRY_PUSH_TOKEN secret." >&2
+            exit 1
+          fi
+
+          printf '%s' "$REGISTRY_TOKEN" | docker login "$REGISTRY" --username "$REGISTRY_USER" --password-stdin
+
+      - name: Build image
+        run: |
+          set -eu
+          docker build --tag "$IMAGE" .
+
+      - name: Push image
+        run: |
+          set -eu
+          docker push "$IMAGE"
+
+      - name: Dispatch infrastructure deploy
+        env:
+          INFRA_WORKFLOW_TOKEN: ${{ secrets.INFRA_WORKFLOW_TOKEN }}
+        run: |
+          set -eu
+
+          if [ -z "$INFRA_WORKFLOW_TOKEN" ]; then
+            echo "Missing INFRA_WORKFLOW_TOKEN secret." >&2
+            exit 1
+          fi
+
+          curl -fsS -X POST \
+            -H "Authorization: token $INFRA_WORKFLOW_TOKEN" \
+            -H "Content-Type: application/json" \
+            "$FORGEJO_API_URL/repos/$INFRA_REPOSITORY/actions/workflows/deploy-target.yaml/dispatches" \
+            -d '{
+              "ref": "main",
+              "inputs": {
+                "target": "'"$DEPLOY_TARGET"'",
+                "verify": true
+              }
+            }'
