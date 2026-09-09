@@ -45,7 +45,7 @@ export class UploadController {
       throw new BadRequestException('Файл не был загружен');
     }
 
-    return this.uploadService.buildUrl(file.path);
+    return `/${file.path}`;
   }
 
   @Post('audio')
